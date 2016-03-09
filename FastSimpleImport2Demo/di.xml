@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2016 FireGento e.V. - All rights reserved.
+ * See LICENSE.md bundled with this module for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="delete_product_all" xsi:type="object">FireGento\FastSimpleImport2Demo\Console\Command\Product\DeleteAll</item>
+                <item name="delete_customers_all" xsi:type="object">FireGento\FastSimpleImport2Demo\Console\Command\Customer\DeleteAll</item>
+
+                <item name="import_configurable" xsi:type="object">FireGento\FastSimpleImport2Demo\Console\Command\Product\ImportConfigurable</item>
+                <item name="import_simple" xsi:type="object">FireGento\FastSimpleImport2Demo\Console\Command\Product\ImportSimple</item>
+                <item name="import_bundle" xsi:type="object">FireGento\FastSimpleImport2Demo\Console\Command\Product\ImportBundle</item>
+                <item name="import_leica" xsi:type="object">FireGento\FastSimpleImport2Demo\Console\Command\Product\ImportLeica</item>
+
+                <item name="import_customer" xsi:type="object">FireGento\FastSimpleImport2Demo\Console\Command\Customer\ImportCustomer</item>
+
+            </argument>
+        </arguments>
+    </type>
+
+</config>
