@@ -111,16 +111,25 @@ class ImportLeica extends AbstractImportCommand
                 $cat_str = "Default Category/".$base_cats_keyed[$row["WEBKATEGORIE_ID"]]["NAME"];
 
                 if ($row["WEBUKATEGORIE_ID"] > 0) {
-                    $cat_str = $cat_str. "|Default Category/".$sub_cats_keyed[$row["WEBUKATEGORIE_ID"]]["NAMEPARENT"]."/".$sub_cats_keyed[$row["WEBUKATEGORIE_ID"]]["NAME"];
+                    $cat_str = $cat_str. ",Default Category/".$sub_cats_keyed[$row["WEBUKATEGORIE_ID"]]["NAMEPARENT"]."/".$sub_cats_keyed[$row["WEBUKATEGORIE_ID"]]["NAME"];
                 }
 
                 $quantity = "Out of Stock";
+                $is_in_stock = 0;
+                $stock_status = 0;
                 if ($row["BESTAND"] > 0) {
                     $quantity = "In Stock";
+                    $is_in_stock = 1;
+                    $stock_status = 1;
                 }
 
                 if (strlen($cat_str) > 255) {
                     print_r($cat_str);
+                }
+
+                $tax_class_name = 'Vollbesteuerte Artikel';
+                if ($row["USTSATZ"] == "13") {
+                    $tax_class_name = 'Ermäßigbesteuerte Artikel';
                 }
 
                 //Die URL Keys die für MAGENTO erzeugt werden, werden offensichtlich aus der Bezeichnung erzeugt, wenn jedoch
@@ -144,13 +153,32 @@ class ImportLeica extends AbstractImportCommand
                     "price" => $row["PREIS"],
                     "visibility" => "Catalog, Search",
                     "categories" => $cat_str,
-                    "additional_attributes" => "has_options=0,is_returnable=Use config,quantity_and_stock_status=$quantity,required_options=0",
-                    'tax_class_name' => 'Taxable Goods',
+                    //"additional_attributes" => "has_options=0,is_returnable=Use config,quantity_and_stock_status=$quantity,required_options=0",
+                    'tax_class_name' => $tax_class_name,
                     "url_key" => $url_key,
+                    "is_in_stock" => $is_in_stock,
+                    "stock_status" => $stock_status,
                     "qty" => $row['BESTAND']
                 );
             }
         }
+
+        //Es gibt scheinbar einen Fehler im Magento Stock System => Store ID ist standardmäßig 0, wenn gespeichert wird wird die Stock ID auf 1 gesetzt
+        //Somit schreibt Magento dies in inkorrekt in den Importer (Eigentlich sollte er ja die Website Id, mittels des Produktes holen.
+        //Er schreibt jedoch 0 hinein, wenn gespeichert wurde, wird 1 hinein geschrieben und Magento spinnt sich aus.
+        //Wir setzten mal website_id in der Tabelle lei_cataloginventory_stock_item auf 0, damit der Importer nicht inkorrekte Daten schreibt
+        $user = 'root';
+        $pw = '';
+        $database = 'magento';
+
+        $link = mysqli_connect("localhost", $user, $pw, $database);
+        if (!$link) {
+            echo "Error: Unable to connect to Mysql";
+            exit;
+        }
+
+        mysqli_query($link, "UPDATE lei_cataloginventory_stock_item SET website_id = 0");
+        mysqli_close($link);
 
         /*
             print_r($base_cats);
